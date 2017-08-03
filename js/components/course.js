@@ -3,7 +3,7 @@ import { getCourse, getCourseContents } from '../moodle'
 import { CourseModule } from './course-module'
 import { parseSummary } from '../helpers'
 import { fileUrl } from '../helpers/files'
-import { extract } from './raw-html/extract'
+import { extract } from '../raw-html/extract'
 
 const sectionId = (id) => `section-${id}`
 

@@ -1,4 +1,4 @@
-import { extract } from './components/raw-html/extract'
+import { extract } from './raw-html/extract'
 
 export const parseSummary = (summary) => {
   const extracted = extract(summary)
