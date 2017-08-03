@@ -1,0 +1,19 @@
+.block-content {
+  > ul > li {
+    position: relative;
+    padding-left: 1em;
+  }
+
+  > ul > li::before {
+    content: '–';
+    position: absolute;
+    left: 0;
+  }
+
+  > ul:not(:last-child),
+  > p:not(:last-child),
+  > img:not(:last-child),
+  > h3:not(:last-child) {
+    margin-bottom: 12px;
+  }
+}

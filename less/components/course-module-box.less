@@ -1,0 +1,21 @@
+.course-module-box {
+  display: flex;
+  flex-direction: column;
+
+  > .summary {
+    display: inline-flex;
+  }
+
+  > .summary::before {
+    display: none;
+  }
+
+  &[open] > .summary {
+    margin-bottom: 8px;
+  }
+
+  > .content {
+    border-left: 2px solid #ccc;
+    padding: 8px 16px;
+  }
+}

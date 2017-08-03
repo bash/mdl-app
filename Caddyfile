@@ -1,0 +1,6 @@
+localhost:8080
+tls off
+
+rewrite / {
+    to {path} /
+}
