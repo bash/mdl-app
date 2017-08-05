@@ -7,7 +7,7 @@ import { Course } from './course'
 const RouteGuard = ({ guard, redirectTo, children, ...props }) => {
   if (guard()) return children[0](props)
 
-  route(redirectTo)
+  route({ url: redirectTo, replace: true })
 
   return null
 }
