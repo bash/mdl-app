@@ -38,6 +38,16 @@ const groupModules = (modules) => {
   return groups
 }
 
+const normalizeIndentation = (modules) => {
+  if (modules.every((module) => module.indent > 0)) {
+    return modules.map((module) => {
+      return { ...module, indent: module.indent - 1 }
+    })
+  }
+
+  return modules
+}
+
 const CourseSummary = ({ summary, token }) => {
   const items = extract(summary || '')
 
@@ -73,7 +83,7 @@ const Label = ({ label, token }) => {
   const items = extract(label.description || '')
   const firstItem = items[0]
 
-  if (firstItem.type === 'block') {
+  if (firstItem && firstItem.type === 'block') {
     return (
       <header class='header block-content'>
         <h3 class='title'>{firstItem.value}</h3>
@@ -90,6 +100,8 @@ const Label = ({ label, token }) => {
 }
 
 const CourseModuleGroup = ({ label, modules, token }) => {
+  modules = normalizeIndentation(modules)
+
   return (
     <section class='course-module-group'>
       {label && <Label label={label} token={token} />}
@@ -102,8 +114,6 @@ const CourseModuleGroup = ({ label, modules, token }) => {
 
 const CourseSection = ({ section, token }) => {
   const groups = groupModules(section.modules)
-
-  console.log(groups)
 
   if (section.modules.length === 0) return null
 
