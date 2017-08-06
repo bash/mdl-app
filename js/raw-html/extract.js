@@ -1,3 +1,10 @@
+// Example matches:
+// · apples
+// 1. apples
+// 2. oranges
+// TODO: maybe allow more characters
+const LIST_START_REGEX = /^(·|([0-9]+\.))/
+
 const createDocumentFragment = (html) => {
   const template = document.createElement('template')
   template.innerHTML = html
@@ -12,8 +19,6 @@ const normalizeValue = (value) => {
     .replace(/\n/g, ' ')
     .trim()
 }
-
-const LIST_START_REGEX = /^(·|([0-9]+\.))/
 
 /** extracts text from a root node */
 const extractText = (root) => {
@@ -40,7 +45,7 @@ const convertBlocksToLists = (items, item) => {
   const value = normalizeValue(item.value.replace(LIST_START_REGEX, ''))
   const previousItem = items[items.length - 1]
 
-  // joins consecutive (converted) lists together
+  // joins consecutive lists (only if converted from block) together
   if (previousItem && previousItem.type === 'list' && previousItem.fromBlock) {
     previousItem.items.push(value)
     return items
@@ -88,7 +93,7 @@ const processNode = (node) => {
 
   // we're treating formatting tags and <div>s as 'transparent' nodes
   // TODO: add more tags here
-  if (node.matches('span, strong, b, i, em, font, div')) return processNodes(node.childNodes)
+  if (node.matches('span, strong, b, i, em, font, u, sup, sub, strike, div')) return processNodes(node.childNodes)
 
   if (node.matches('img')) return processImage(node)
 
@@ -115,10 +120,8 @@ const handleRoot = (root) => {
   return processNodes(root.childNodes)
     .filter((item) => item != null)
     .reduce(groupConsecutiveTextItems, [])
-    .map((item) => convertTextToBlock(item))
-    .map((item) => normalizeValues(item))
-    .filter((item) => blockHasValue(item))
-    .filter((item) => item.type !== 'break')
+    .map((item) => normalizeValues(convertTextToBlock(item)))
+    .filter((item) => blockHasValue(item) && item.type !== 'break')
 }
 
 export const extract = (html) => {
