@@ -4,7 +4,7 @@ const MOODLE_HOST = 'moodle.bbbaden.ch'
 const MOODLE_SERVICE = 'moodle_mobile_app'
 
 const buildSearchParams = (params) => {
-  const searchParams = new URLSearchParams()
+  const searchParams = new window.URLSearchParams()
 
   Object.entries(params)
     .forEach(([name, value]) => searchParams.append(name, value))

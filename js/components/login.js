@@ -13,20 +13,20 @@ export class Login extends Component {
     const token = authenticate(username, password)
     const siteInfo = token.then((token) => getSiteInfo(token))
 
-    this.setState({isLoading: true})
+    this.setState({ isLoading: true })
 
     Promise.all([token, siteInfo])
       .then(([token, siteInfo]) => {
-        this.props.onLogin({token, siteInfo})
-        this.setState({isLoading: false})
+        this.props.onLogin({ token, siteInfo })
+        this.setState({ isLoading: false })
       })
       .catch(() => {
-        this.setState({isLoading: false})
+        this.setState({ isLoading: false })
       })
   }
 
   // noinspection JSCheckFunctionSignatures
-  render ({onLogin}, {hasError, isLoading}) {
+  render ({ onLogin }, { hasError, isLoading }) {
     return (
       <form class='form-wrap' onSubmit={this._onSubmit.bind(this)}>
         <h1>Login</h1>

@@ -21,7 +21,7 @@ deps:
 	npm install
 
 lint:
-	standard js/**/*.js
+	standard 'js/**/*.js'
 	lessc --lint less/app.less
 
 build/css/app.css: $(LESS_FILES)
