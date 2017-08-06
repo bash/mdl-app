@@ -1,6 +1,11 @@
 localhost:8080
 tls off
 
+# disable caching
+header / cache-control "no-cache, no-store, must-revalidate"
+header / pragma "no-cache"
+header / expires 0
+
 rewrite / {
     to {path} /
 }
