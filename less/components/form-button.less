@@ -1,0 +1,16 @@
+.form-button {
+  cursor: pointer;
+  background-color: #d3227b;
+  color: #fff;
+  border-radius: 5px;
+  padding: 6px 12px;
+  transition: box-shadow .125s, background-color .125s;
+
+  &[disabled] {
+    background-color: #ccc;
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px fade(#d3227b, 70%);
+  }
+}

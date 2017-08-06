@@ -1,5 +1,6 @@
 import { Component } from 'preact'
 import { authenticate, getSiteInfo } from '../moodle'
+import { FormInput } from './form-input'
 
 export class Login extends Component {
   _onSubmit (event) {
@@ -12,26 +13,26 @@ export class Login extends Component {
     const token = authenticate(username, password)
     const siteInfo = token.then((token) => getSiteInfo(token))
 
+    this.setState({isLoading: true})
+
     Promise.all([token, siteInfo])
       .then(([token, siteInfo]) => {
-        this.props.onLogin({ token, siteInfo })
+        this.props.onLogin({token, siteInfo})
+        this.setState({isLoading: false})
+      })
+      .catch(() => {
+        this.setState({isLoading: false})
       })
   }
 
   // noinspection JSCheckFunctionSignatures
-  render ({ onLogin }, { hasError }) {
+  render ({onLogin}, {hasError, isLoading}) {
     return (
-      <form onSubmit={this._onSubmit.bind(this)}>
-        <label>
-          Username
-          <input type='text' name='username' placeholder='Username' />
-        </label>
-        <br />
-        <label>
-          Password
-          <input type='password' name='password' placeholder='Password' />
-        </label>
-        <button type='submit'>
+      <form class='form-wrap' onSubmit={this._onSubmit.bind(this)}>
+        <h1>Login</h1>
+        <FormInput addClass='-margin-after' label='Username' type='text' name='username' placeholder='Username' />
+        <FormInput addClass='-margin-after' label='Password' type='password' name='password' placeholder='Password' />
+        <button class='form-button' type='submit' disabled={isLoading}>
           Login
         </button>
       </form>
