@@ -1,20 +1,17 @@
 import babel from 'rollup-plugin-babel'
-import uglify from 'rollup-plugin-uglify'
 import resolve from 'rollup-plugin-node-resolve'
+import uglify from 'rollup-plugin-uglify-es'
 
 const isProduction = process.env['BUILD_TARGET'] === 'release'
 
 const plugins = [
   babel(),
-  resolve({ jsnext: true, modulesOnly: true })
+  resolve({ jsnext: true, modulesOnly: true }),
+  uglify({ compress: true, mangle: true })
 ]
 
-if (isProduction) {
-  plugins.push(uglify())
-}
-
 export default {
-  plugins: plugins,
+  plugins,
   sourceMap: !isProduction,
   format: 'iife'
 }
