@@ -1,10 +1,11 @@
 import { Component } from 'preact'
 import { authenticate, getSiteInfo } from '../moodle'
 import { FormInput } from './form-input'
+import FormData from '../../node_modules/formdata-polyfill/FormData'
 
 export class Login extends Component {
   _onSubmit (event) {
-    const formData = new window.FormData(event.target)
+    const formData = new FormData(event.target)
     const username = formData.get('username')
     const password = formData.get('password')
 

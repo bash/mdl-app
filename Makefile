@@ -13,6 +13,10 @@ ROLLUP_CONFIG := .rollup.config.js
 
 all: build/css/app.css build/js/app.js build/js/polyfills.js
 
+release:
+	$(MAKE) clean
+	BUILD_MODE=release $(MAKE)
+
 clean:
 	rm -rf build/
 
@@ -26,7 +30,7 @@ lint:
 
 build/css/app.css: $(LESS_FILES)
 	@mkdir -p $(@D)
-ifeq ($(NODE_ENV), production)
+ifeq ($(BUILD_MODE), release)
 	lessc less/app.less | postcss -u autoprefixer -u cssnano -o $@
 else
 	lessc less/app.less | postcss -u autoprefixer -o $@

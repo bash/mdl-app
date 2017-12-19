@@ -19,7 +19,7 @@ It's generally a good idea to run `make clean` before building for production.
 
 ```bash
 make clean
-BUILD_TARGET=release make
+BUILD_MODE=release make
 ```
 
 ## Cleanup built files
