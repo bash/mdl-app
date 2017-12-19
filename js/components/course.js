@@ -6,6 +6,7 @@ import { fileUrl } from '../helpers/files'
 import { extract } from '../raw-html/extract'
 
 const sectionId = (id) => `section-${id}`
+const DEFAULT_DESCRIPTION = 'Beschreiben Sie kurz und prägnant, worum es in diesem Kurs geht.';
 
 // TODO: this needs to be waaay more functional
 const groupModules = (modules) => {
@@ -115,7 +116,7 @@ const CourseModuleGroup = ({ label, modules, token }) => {
 const CourseSection = ({ section, token }) => {
   const groups = groupModules(section.modules)
 
-  if (section.modules.length === 0) return null
+  // if (section.modules.length === 0) return null
 
   return (
     <section class='course-section' id={sectionId(section.id)}>
@@ -153,12 +154,13 @@ export class Course extends Component {
     }
 
     const summary = parseSummary(course.summary)
+    const shouldShowSummary = summary.text && !summary.text.includes(DEFAULT_DESCRIPTION)
 
     return (
       <article>
         <header class='course-header'>
           <h1>{course.fullname}</h1>
-          <p>{summary.text}</p>
+          <p>{shouldShowSummary && summary.text}</p>
         </header>
         {contents.map((section) => <CourseSection section={section} token={token} />)}
       </article>
