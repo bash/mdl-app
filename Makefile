@@ -11,7 +11,7 @@ ROLLUP_CONFIG := .rollup.config.js
 
 .PHONY: all clean lint deps
 
-all: build/css/app.css build/js/app.js build/js/polyfills.js
+all: build/css/app.css build/js/app.js build/js/polyfills.js build/index.html
 
 release:
 	$(MAKE) clean
@@ -21,8 +21,7 @@ clean:
 	rm -rf build/
 
 deps:
-	npm prune
-	npm install
+	yarn install
 
 lint:
 	standard 'js/**/*.js'
@@ -44,3 +43,6 @@ build/js/polyfills.js: $(POLYFILLS)
 	@mkdir -p $(@D)
 	uglifyjs $+ -o $@
 
+build/index.html: index.html
+	@mkdir -p $(@D)
+	cp $+ $@
