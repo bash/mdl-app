@@ -2,11 +2,13 @@ import { DefaultModule } from './modules/default'
 import { FolderModule } from './modules/folder'
 import { FileModule } from './modules/file'
 import { UrlModule } from './modules/url'
+import { ForumModule } from './modules/forum'
 
 const modulesToComponent = {
   folder: FolderModule,
   resource: FileModule,
-  url: UrlModule
+  url: UrlModule,
+  forum: ForumModule
 }
 
 export const CourseModule = ({ module, token }) => {

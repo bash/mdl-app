@@ -1,12 +1,12 @@
 import { Component } from 'preact'
-import { getCourse, getCourseContents } from '../moodle'
+import { getCourse, getCourseContents, getCourseUrl, canSelfEnrol, enrolSelf } from '../moodle'
 import { CourseModule } from './course-module'
 import { parseSummary } from '../helpers'
-import { fileUrl } from '../helpers/files'
 import { extract } from '../raw-html/extract'
+import { RawHtml } from '../raw-html/render'
 
 const sectionId = (id) => `section-${id}`
-const DEFAULT_DESCRIPTION = 'Beschreiben Sie kurz und prägnant, worum es in diesem Kurs geht.';
+const DEFAULT_DESCRIPTION = 'Beschreiben Sie kurz und prägnant, worum es in diesem Kurs geht.'
 
 // TODO: this needs to be waaay more functional
 const groupModules = (modules) => {
@@ -55,47 +55,19 @@ const CourseSummary = ({ summary, token }) => {
   if (items.length === 0) return null
 
   return (
-    <div class='course-summary block-content'>
-      {items.map((item) => <Item item={item} token={token} />)}
+    <div class='course-summary'>
+      <RawHtml items={items} token={token} />
     </div>
   )
-}
-
-// TODO: rename and move
-// TODO: experiment with making first block h3
-const Item = ({ item, token }) => {
-  if (item.type === 'block') {
-    return <p>{item.value}</p>
-  }
-
-  if (item.type === 'list') {
-    return <ul>{item.items.map((value) => <li>{value}</li>)}</ul>
-  }
-
-  if (item.type === 'image') {
-    return <img src={fileUrl(item.src, token)} alt={item.alt} title={item.title} />
-  }
-
-  console.warn('item not recognized', item)
 }
 
 // TODO: rename
 const Label = ({ label, token }) => {
   const items = extract(label.description || '')
-  const firstItem = items[0]
-
-  if (firstItem && firstItem.type === 'block') {
-    return (
-      <header class='header block-content'>
-        <h3 class='title'>{firstItem.value}</h3>
-        {items.slice(1).map((item) => <Item item={item} token={token} />)}
-      </header>
-    )
-  }
 
   return (
-    <header class='header block-content'>
-      {items.map((item) => <Item item={item} token={token} />)}
+    <header class='header'>
+      <RawHtml items={items} token={token} promoteFirst />
     </header>
   )
 }
@@ -129,38 +101,143 @@ const CourseSection = ({ section, token }) => {
   )
 }
 
+const CourseState = {
+  LOADING: 'LOADING',
+  NOT_FOUND: 'NOT_FOUND',
+  CAN_ENROL: 'CAN_ENROL',
+  LOADED: 'LOADED'
+}
+
+const fetchCourse = (token, userId, id) => {
+  const course = getCourse(token, userId, id)
+  const contents = getCourseContents(token, id)
+
+  const canEnrol = Promise.all([course, contents])
+                          .then(([course, contents]) => {
+                            if (course != null) return false
+                            if (contents != null) return false
+
+                            return canSelfEnrol(token, id)
+                          })
+
+  return Promise.all([course, contents, canEnrol])
+                .then(([course, contents, canEnrol]) => {
+                  return { course, contents, canEnrol }
+                })
+}
+
+const BlobButton = ({ state }) => {
+  const raw = JSON.stringify(state, null, 2)
+  const blob = new window.Blob([raw], { type: 'application/json' })
+  const url = window.URL.createObjectURL(blob)
+
+  return (
+    <a href={url} class='form-button'>
+      Show Blob
+    </a>
+  )
+}
+
 export class Course extends Component {
   componentDidMount () {
-    const { token, userId, id } = this.props
-
-    getCourse(token, userId, id)
-      .then((course) => this.setState({ course }))
-
-    getCourseContents(token, id)
-      .then((contents) => this.setState({ contents }))
+    this._fetch()
   }
 
-  // noinspection JSCheckFunctionSignatures
-  render ({ id, token }, { course, contents = [] }) {
-    if (course == null) {
+  _fetch () {
+    const { token, userId, id } = this.props
+
+    return fetchCourse(token, userId, id)
+      .then(({ course, contents, canEnrol }) => {
+        const state = (() => {
+          if (canEnrol) return CourseState.CAN_ENROL
+
+          // immediately after enrolling the course is not yet available in the list
+          // but it's contents can be fetched... we want to prevent a not found in that case
+          if (course == null && contents == null) return CourseState.NOT_FOUND
+
+          return CourseState.LOADED
+        })()
+
+        this.setState({ state, course, contents })
+      })
+  }
+
+  _onEnrol () {
+    const { token, id } = this.props
+
+    this.setState({ state: CourseState.LOADING })
+
+    return enrolSelf(token, id)
+             .then(() => this._fetch())
+  }
+
+  render ({ id, token, debug }, { course, contents = [], state = CourseState.LOADING }) {
+    if (debug) {
       return (
-        <article>
+        <div>
           <header class='course-header'>
-            <h1>Kurs {id}</h1>
-            <p>Wird geladen...</p>
+            <nav class='buttons'>
+              <BlobButton state={this.state} />
+            </nav>
           </header>
-        </article>
+          <pre style='font-family: monospace; overflow: auto'>
+            {JSON.stringify(this.state, null, 4)}
+          </pre>
+        </div>
       )
     }
 
-    const summary = parseSummary(course.summary)
-    const shouldShowSummary = summary.text && !summary.text.includes(DEFAULT_DESCRIPTION)
+    switch (state) {
+      case CourseState.LOADING:
+        return (
+          <article>
+            <header class='course-header'>
+              <h1>Kurs {id}</h1>
+              <p>Wird geladen...</p>
+            </header>
+          </article>
+        )
+      case CourseState.CAN_ENROL:
+        return (
+          <article>
+            <header class='course-header'>
+              <h1>Kurs {id}</h1>
+              <p>Einschreiben möglich</p>
+              <nav class='buttons'>
+                <a href={getCourseUrl(id)} class='form-button'>
+                  In Moodle anzeigen
+                </a>
+                <button onClick={() => this._onEnrol()} class='form-button'>
+                  Einschreiben
+                </button>
+              </nav>
+            </header>
+          </article>
+        )
+      case CourseState.NOT_FOUND:
+        return (
+          <article>
+            <header class='course-header'>
+              <h1>Kurs {id}</h1>
+              <p>Nicht gefunden</p>
+            </header>
+          </article>
+        )
+    }
+
+    const summary = course && parseSummary(course.summary)
+    const shouldShowSummary = summary && summary.text && !summary.text.includes(DEFAULT_DESCRIPTION)
 
     return (
       <article>
         <header class='course-header'>
           <h1>{course.fullname}</h1>
           <p>{shouldShowSummary && summary.text}</p>
+          <nav class='buttons'>
+            <a href={getCourseUrl(id)} class='form-button'>
+              In Moodle anzeigen
+            </a>
+          </nav>
         </header>
         {contents.map((section) => <CourseSection section={section} token={token} />)}
       </article>

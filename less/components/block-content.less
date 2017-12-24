@@ -1,19 +1,44 @@
 .block-content {
-  > ul > li {
+  ul > li {
     position: relative;
     padding-left: 1em;
   }
 
-  > ul > li::before {
+  ul > li::before {
     content: '–';
     position: absolute;
     left: 0;
   }
 
-  > ul:not(:last-child),
-  > p:not(:last-child),
-  > img:not(:last-child),
-  > h3:not(:last-child) {
+  ul:not(:last-child),
+  p:not(:last-child),
+  img:not(:last-child),
+  h3:not(:last-child) {
     margin-bottom: 12px;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  td {
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    vertical-align: top;
+  }
+
+  blockquote {
+    border-left: 2px solid #ccc;
+    padding-left: 16px;
+    font-style: italic;
+    color: #ccc;
+  }
+
+  img {
+    max-width: 100%;
+    max-height: 30vmax;
+    width: auto;
+    height: auto;
   }
 }

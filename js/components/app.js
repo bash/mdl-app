@@ -35,7 +35,7 @@ export class App extends Component {
   }
 
   // noinspection JSCheckFunctionSignatures
-  render ({ storage }, { token, userId }) {
+  render ({ storage }, { token, userId, debug }) {
     const isLoggedIn = () => token != null
     const isLoggedOut = () => !isLoggedIn()
 
@@ -48,7 +48,10 @@ export class App extends Component {
           <RouteGuard path='/course/:id' guard={isLoggedIn} redirectTo='/login'>
             {(props) => <Course token={token} userId={userId} id={Number.parseInt(props.id)} />}
           </RouteGuard>
-          <RouteGuard path='/login' guard={isLoggedOut} redirectTo="/">
+          <RouteGuard path='/course/:id/debug' guard={isLoggedIn} redirectTo='/login'>
+            {(props) => <Course token={token} userId={userId} id={Number.parseInt(props.id)} debug />}
+          </RouteGuard>
+          <RouteGuard path='/login' guard={isLoggedOut} redirectTo='/'>
             {() => <Login onLogin={this._onLogin.bind(this)} />}
           </RouteGuard>
           <NotFound default />

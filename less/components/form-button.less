@@ -1,6 +1,8 @@
 .form-button {
   cursor: pointer;
-  background-color: #d3227b;
+  display: inline-block;
+  text-align: center;
+  background-color: var(--primary-color);
   color: #fff;
   border-radius: 5px;
   padding: 6px 12px;
@@ -11,6 +13,6 @@
   }
 
   &:focus {
-    box-shadow: 0 0 0 1px #fff, 0 0 0 3px fade(#d3227b, 70%);
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px var(--primary-color);
   }
 }

@@ -39,6 +39,18 @@ const groupConsecutiveTextItems = (items, item) => {
   return items
 }
 
+const groupConsecutiveLists = (blocks, block) => {
+  const previous = blocks[blocks.length - 1]
+
+  if (previous && previous.type === 'list' && block.type === 'list') {
+    previous.items = [...previous.items, ...block.items]
+  } else {
+    blocks.push(block)
+  }
+
+  return blocks
+}
+
 const convertBlocksToLists = (items, item) => {
   if (item.value == null || !LIST_START_REGEX.test(item.value)) return [...items, item]
 
@@ -81,6 +93,34 @@ const processBreak = () => {
   return { type: 'break' }
 }
 
+const processTable = (node) => {
+  const rows = Array.from(node.querySelectorAll('tr'))
+                    .map(($row) => Array.from($row.querySelectorAll('th, td')))
+
+  const mappedRows = rows.map((row) => {
+    return row.map((column) => handleRoot(column))
+  })
+
+  return { type: 'table', rows: mappedRows }
+}
+
+const processBlockQuote = (node) => {
+  const reduceItems = (items, item) => {
+    if (item.type === 'blockquote') {
+      return [
+        ...items,
+        ...item.items
+      ]
+    }
+
+    return [...items, item]
+  }
+
+  const items = handleRoot(node).reduce(reduceItems, [])
+
+  return { type: 'blockquote', items }
+}
+
 const processNode = (node) => {
   if (node.nodeType === window.Node.COMMENT_NODE) return null
   if (node.nodeType === window.Node.TEXT_NODE) return processTextNode(node)
@@ -99,7 +139,9 @@ const processNode = (node) => {
 
   if (node.matches('br')) return processBreak(node)
 
-  // TODO: needs support for tables
+  if (node.matches('table')) return processTable(node)
+
+  if (node.matches('blockquote')) return processBlockQuote(node)
 
   console.warn('unknown element found during extraction', node)
 
@@ -122,6 +164,7 @@ const handleRoot = (root) => {
     .reduce(groupConsecutiveTextItems, [])
     .map((item) => normalizeValues(convertTextToBlock(item)))
     .filter((item) => blockHasValue(item) && item.type !== 'break')
+    .reduce(groupConsecutiveLists, [])
 }
 
 export const extract = (html) => {
