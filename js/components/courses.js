@@ -2,12 +2,12 @@ import { Component } from 'preact'
 import { getUserCourses } from '../moodle'
 import { Link } from 'preact-router'
 
-const courseUrl = (id) => `/course/${id}`
+const courseLink = (id) => `/course/${id}`
 
 const Course = ({ course }) => {
   return (
     <li class='item'>
-      <Link href={courseUrl(course.id)}>
+      <Link href={courseLink(course.id)}>
         {course.fullname}
       </Link>
     </li>

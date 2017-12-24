@@ -1,9 +1,9 @@
-import { fileUrl, fileIconComponent, shouldIgnoreFile } from '../../helpers/files'
+import { fileUrl, shouldIgnoreFile } from '../../helpers/files'
 import { FolderIcon } from '../icons/folder'
 import { ModuleWrap } from './wrap'
+import { FileIcon } from '../file-icon'
 
 const File = ({ file, token }) => {
-  const Icon = fileIconComponent(file.mimetype)
   const filePath = file.filepath === '/' ? '' : file.filepath
 
   if (shouldIgnoreFile(file.filename)) return null
@@ -11,7 +11,7 @@ const File = ({ file, token }) => {
   return (
     <li class='file'>
       <a href={fileUrl(file.fileurl, token)}>
-        <Icon class='icon' />
+        <FileIcon mimeType={file.mimetype} class='icon' />
         {filePath}{file.filename}
       </a>
     </li>

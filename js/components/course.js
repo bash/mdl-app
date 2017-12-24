@@ -1,105 +1,9 @@
 import { Component } from 'preact'
 import { getCourse, getCourseContents, getCourseUrl, canSelfEnrol, enrolSelf } from '../moodle'
-import { CourseModule } from './course-module'
 import { parseSummary } from '../helpers'
-import { extract } from '../raw-html/extract'
-import { RawHtml } from '../raw-html/render'
+import { CourseTopic } from './course-topic'
 
-const sectionId = (id) => `section-${id}`
-const DEFAULT_DESCRIPTION = 'Beschreiben Sie kurz und prägnant, worum es in diesem Kurs geht.'
-
-// TODO: this needs to be waaay more functional
-const groupModules = (modules) => {
-  const groups = []
-
-  let label = null
-  let groupedModules = []
-
-  const commit = () => {
-    if (groupedModules.length > 0) {
-      groups.push({
-        label, modules: groupedModules
-      })
-    }
-
-    groupedModules = []
-  }
-
-  modules.forEach((module) => {
-    if (module.modname === 'label') {
-      commit()
-      label = module
-    } else {
-      groupedModules.push(module)
-    }
-  })
-
-  commit()
-
-  return groups
-}
-
-const normalizeIndentation = (modules) => {
-  if (modules.every((module) => module.indent > 0)) {
-    return modules.map((module) => {
-      return { ...module, indent: module.indent - 1 }
-    })
-  }
-
-  return modules
-}
-
-const CourseSummary = ({ summary, token }) => {
-  const items = extract(summary || '')
-
-  if (items.length === 0) return null
-
-  return (
-    <div class='course-summary'>
-      <RawHtml items={items} token={token} />
-    </div>
-  )
-}
-
-// TODO: rename
-const Label = ({ label, token }) => {
-  const items = extract(label.description || '')
-
-  return (
-    <header class='header'>
-      <RawHtml items={items} token={token} promoteFirst />
-    </header>
-  )
-}
-
-const CourseModuleGroup = ({ label, modules, token }) => {
-  modules = normalizeIndentation(modules)
-
-  return (
-    <section class='course-module-group'>
-      {label && <Label label={label} token={token} />}
-      <ul class='modules'>
-        {modules.map((module) => <CourseModule module={module} token={token} />)}
-      </ul>
-    </section>
-  )
-}
-
-const CourseSection = ({ section, token }) => {
-  const groups = groupModules(section.modules)
-
-  // if (section.modules.length === 0) return null
-
-  return (
-    <section class='course-section' id={sectionId(section.id)}>
-      <h2 class='title'>
-        {section.name}
-      </h2>
-      <CourseSummary summary={section.summary} token={token} />
-      {groups.map(({ label, modules }) => <CourseModuleGroup label={label} modules={modules} token={token} />)}
-    </section>
-  )
-}
+const DEFAULT_SUMMARY = 'Beschreiben Sie kurz und prägnant, worum es in diesem Kurs geht.'
 
 const CourseState = {
   LOADING: 'LOADING',
@@ -138,6 +42,86 @@ const BlobButton = ({ state }) => {
   )
 }
 
+const MoodleLinkButton = ({ id }) => {
+  return (
+    <a href={getCourseUrl(id)} class='form-button'>
+      In Moodle anzeigen
+    </a>
+  )
+}
+
+const Loading = ({ id }) => {
+  return (
+    <article>
+      <header class='course-header'>
+        <h1>Kurs {id}</h1>
+        <p>Wird geladen...</p>
+      </header>
+    </article>
+  )
+}
+
+const Enrol = ({ id, onEnrol }) => {
+  return (
+    <article>
+      <header class='course-header'>
+        <h1>Kurs {id}</h1>
+        <p>Einschreiben möglich</p>
+        <nav class='buttons'>
+          <MoodleLinkButton id={id} />
+          <button onClick={onEnrol} class='form-button'>
+            Einschreiben
+          </button>
+        </nav>
+      </header>
+    </article>
+  )
+}
+
+const Debug = ({ state }) => {
+  return (
+    <div>
+      <header class='course-header'>
+        <nav class='buttons'>
+          <BlobButton state={state} />
+        </nav>
+      </header>
+      <pre style='font-family: monospace; overflow: auto'>
+        {JSON.stringify(state, null, 4)}
+      </pre>
+    </div>
+  )
+}
+
+const NotFound = ({ id }) => {
+  return (
+    <article>
+      <header class='course-header'>
+        <h1>Kurs {id}</h1>
+        <p>Nicht gefunden</p>
+      </header>
+    </article>
+  )
+}
+
+const CourseDetails = ({ id, token, course, contents = [] }) => {
+  const summary = parseSummary(course.summary)
+  const shouldShowSummary = summary && summary.text && !summary.text.includes(DEFAULT_SUMMARY)
+
+  return (
+    <article>
+      <header class='course-header'>
+        <h1>{course.fullname}</h1>
+        <p>{shouldShowSummary && summary.text}</p>
+        <nav class='buttons'>
+          <MoodleLinkButton id={id} />
+        </nav>
+      </header>
+      {contents.map((topic) => <CourseTopic topic={topic} token={token} />)}
+    </article>
+  )
+}
+
 export class Course extends Component {
   componentDidMount () {
     this._fetch()
@@ -172,75 +156,17 @@ export class Course extends Component {
   }
 
   render ({ id, token, debug }, { course, contents = [], state = CourseState.LOADING }) {
-    if (debug) {
-      return (
-        <div>
-          <header class='course-header'>
-            <nav class='buttons'>
-              <BlobButton state={this.state} />
-            </nav>
-          </header>
-          <pre style='font-family: monospace; overflow: auto'>
-            {JSON.stringify(this.state, null, 4)}
-          </pre>
-        </div>
-      )
-    }
+    if (debug) return <Debug state={this.state} />
 
     switch (state) {
       case CourseState.LOADING:
-        return (
-          <article>
-            <header class='course-header'>
-              <h1>Kurs {id}</h1>
-              <p>Wird geladen...</p>
-            </header>
-          </article>
-        )
+        return <Loading id={id} />
       case CourseState.CAN_ENROL:
-        return (
-          <article>
-            <header class='course-header'>
-              <h1>Kurs {id}</h1>
-              <p>Einschreiben möglich</p>
-              <nav class='buttons'>
-                <a href={getCourseUrl(id)} class='form-button'>
-                  In Moodle anzeigen
-                </a>
-                <button onClick={() => this._onEnrol()} class='form-button'>
-                  Einschreiben
-                </button>
-              </nav>
-            </header>
-          </article>
-        )
+        return <Enrol id={id} onEnrol={() => this._onEnrol()} />
       case CourseState.NOT_FOUND:
-        return (
-          <article>
-            <header class='course-header'>
-              <h1>Kurs {id}</h1>
-              <p>Nicht gefunden</p>
-            </header>
-          </article>
-        )
+        return <NotFound id={id} />
     }
 
-    const summary = course && parseSummary(course.summary)
-    const shouldShowSummary = summary && summary.text && !summary.text.includes(DEFAULT_DESCRIPTION)
-
-    return (
-      <article>
-        <header class='course-header'>
-          <h1>{course.fullname}</h1>
-          <p>{shouldShowSummary && summary.text}</p>
-          <nav class='buttons'>
-            <a href={getCourseUrl(id)} class='form-button'>
-              In Moodle anzeigen
-            </a>
-          </nav>
-        </header>
-        {contents.map((section) => <CourseSection section={section} token={token} />)}
-      </article>
-    )
+    return <CourseDetails id={id} token={token} course={course} contents={contents} />
   }
 }

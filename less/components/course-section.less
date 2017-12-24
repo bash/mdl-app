@@ -1,6 +1,15 @@
 .course-section {
-  > .title {
+  > .header > .title {
     margin-bottom: 8px;
+  }
+
+  > .header > .summary {
+    margin-bottom: 24px;
+  }
+
+  > .header > .summary > .text:not(:last-child),
+  > .header > .summary > .image:not(:last-child) {
+    margin-bottom: 16px;
   }
 
   &:not(:last-child) {
