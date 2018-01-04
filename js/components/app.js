@@ -46,10 +46,10 @@ export class App extends Component {
             {() => <Courses token={token} userId={userId} />}
           </RouteGuard>
           <RouteGuard path='/course/:id' guard={isLoggedIn} redirectTo='/login'>
-            {(props) => <Course token={token} userId={userId} id={Number.parseInt(props.id)} />}
+            {({ id }) => <Course token={token} userId={userId} id={Number.parseInt(id)} />}
           </RouteGuard>
           <RouteGuard path='/course/:id/debug' guard={isLoggedIn} redirectTo='/login'>
-            {(props) => <Course token={token} userId={userId} id={Number.parseInt(props.id)} debug />}
+            {({ id }) => <Course token={token} userId={userId} id={Number.parseInt(id)} debug />}
           </RouteGuard>
           <RouteGuard path='/login' guard={isLoggedOut} redirectTo='/'>
             {() => <Login onLogin={this._onLogin.bind(this)} />}

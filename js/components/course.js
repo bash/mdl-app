@@ -123,12 +123,24 @@ const CourseDetails = ({ id, token, course, contents = [] }) => {
 }
 
 export class Course extends Component {
+  constructor (props, context) {
+    super(props, context)
+
+    this.setState({ state: CourseState.LOADING })
+  }
+
   componentDidMount () {
     this._fetch()
   }
 
   _fetch () {
     const { token, userId, id } = this.props
+
+    // early return for NaN values (for invalid routes)
+    if (Number.isNaN(id)) {
+      this.setState({ state: CourseState.NOT_FOUND })
+      return
+    }
 
     return fetchCourse(token, userId, id)
       .then(({ course, contents, canEnrol }) => {
@@ -155,8 +167,8 @@ export class Course extends Component {
              .then(() => this._fetch())
   }
 
-  render ({ id, token, debug }, { course, contents = [], state = CourseState.LOADING }) {
-    if (debug) return <Debug state={this.state} />
+  render ({ id, token, debug }, { course, contents = [], state }) {
+    if (debug) return <Debug state={{id, token, debug, ...this.state}} />
 
     switch (state) {
       case CourseState.LOADING:
