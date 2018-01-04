@@ -1,4 +1,4 @@
-export const Icon = ({ children, fill, stroke, size, style, ...props }) => {
+export const Icon = ({ children, label, fill, stroke, size, style, ...props }) => {
   return (
     <svg
       preserveAspectRatio='xMidYMid meet'
@@ -7,6 +7,8 @@ export const Icon = ({ children, fill, stroke, size, style, ...props }) => {
       stroke={stroke || 'currentColor'}
       height={size}
       width={size}
+      role='img'
+      aria-label={label}
       {...props}
       style={{
         verticalAlign: 'middle',

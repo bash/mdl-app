@@ -104,6 +104,12 @@ const NotFound = ({ id }) => {
   )
 }
 
+const CourseSummary = ({ shouldShow, summary }) => {
+  if (!shouldShow) return null
+
+  return <p>{summary.text}</p>
+}
+
 const CourseDetails = ({ id, token, course, contents = [] }) => {
   const summary = parseSummary(course.summary)
   const shouldShowSummary = summary && summary.text && !summary.text.includes(DEFAULT_SUMMARY)
@@ -112,7 +118,7 @@ const CourseDetails = ({ id, token, course, contents = [] }) => {
     <article>
       <header class='course-header'>
         <h1>{course.fullname}</h1>
-        <p>{shouldShowSummary && summary.text}</p>
+        <CourseSummary shouldShow={shouldShowSummary} summary={summary} />
         <nav class='buttons'>
           <MoodleLinkButton id={id} />
         </nav>
