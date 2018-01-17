@@ -33,7 +33,7 @@ echo "${TEMPLATE}" > index.html
 
 cp -r ../fonts fonts
 
-tar -zcvf mdl-app.tar.gz ./
+tar -zcvf mdl-app.tar.gz ./*
 mkdir -p ../dist
 cp mdl-app.tar.gz ../dist/
 
