@@ -3,7 +3,7 @@
 // 1. apples
 // 2. oranges
 // TODO: maybe allow more characters
-const LIST_START_REGEX = /^(·|([0-9]+\.))/
+const LIST_START_REGEX = /^·[\s+]/
 
 const createDocumentFragment = (html) => {
   const template = document.createElement('template')
@@ -18,6 +18,10 @@ const normalizeValue = (value) => {
     .replace(/^[.]/, '')
     .replace(/\n/g, ' ')
     .trim()
+}
+
+const normalizeListValue = (value) => {
+  return normalizeValue(value.replace(LIST_START_REGEX, ''))
 }
 
 /** extracts text from a root node */
@@ -54,7 +58,7 @@ const groupConsecutiveLists = (blocks, block) => {
 const convertBlocksToLists = (items, item) => {
   if (item.value == null || !LIST_START_REGEX.test(item.value)) return [...items, item]
 
-  const value = normalizeValue(item.value.replace(LIST_START_REGEX, ''))
+  const value = normalizeListValue(item.value)
   const previousItem = items[items.length - 1]
 
   // joins consecutive lists (only if converted from block) together
@@ -71,7 +75,9 @@ const processList = (node) => {
     .from(node.querySelectorAll(':scope > li'))
     .map((node) => {
       // list items only support plain text
-      return extractText(node)
+      const text = extractText(node)
+      
+      return text && normalizeListValue(text)
     })
 
   return { type: 'list', items }
@@ -98,7 +104,10 @@ const processTable = (node) => {
                     .map(($row) => Array.from($row.querySelectorAll('th, td')))
 
   const mappedRows = rows.map((row) => {
-    return row.map((column) => handleRoot(column))
+    return row.map((column) => ({
+      span: column.colSpan,
+      items: handleRoot(column),
+    }))
   })
 
   return { type: 'table', rows: mappedRows }

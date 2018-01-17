@@ -75,14 +75,14 @@ const Table = ({ rows, ...props }) => {
 const TableRow = ({ columns, ...props }) => {
   return (
     <tr>
-      {columns.map((items) => <TableColumn items={items} {...props} />)}
+      {columns.map(({ items, span }) => <TableColumn items={items} span={span} {...props} />)}
     </tr>
   )
 }
 
-const TableColumn = ({ items, ...props }) => {
+const TableColumn = ({ items, span, ...props }) => {
   return (
-    <td>
+    <td colSpan={span}>
       {items.map((item) => <Item item={item} {...props} />)}
     </td>
   )
