@@ -1,6 +1,10 @@
 #!/bin/bash
 
-make release
+set -e
+
+make clean
+
+BUILD_MODE=release make -B
 
 cd build
 
@@ -27,8 +31,9 @@ done
 
 echo "${TEMPLATE}" > index.html
 
-scp -r . samaritan.rubys.ninja:/var/www/mdl-app/
-scp -r ../fonts samaritan.rubys.ninja:/var/www/mdl-app/fonts
+cp -r ../fonts fonts
 
-cd ..
-make clean
+tar -zcvf mdl-app.tar.gz ./
+mkdir -p ../dist
+cp mdl-app.tar.gz ../dist/
+

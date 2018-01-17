@@ -1,0 +1,32 @@
+language: node_js
+
+notifications:
+  email: false
+
+script:
+- make
+
+before_deploy:
+- ./scripts/package.sh
+
+deploy:
+- provider: s3
+  access_key_id: $S3_ACCESS_KEY
+  secret_access_key: $S3_ACCESS_SECRET
+  bucket: rschmidmeister
+  region: nyc3
+  endpoint: https://nyc3.digitaloceanspaces.com
+  skip_cleanup: true
+
+  local_dir: dist
+  upload-dir: travis-builds/mdl-app
+
+  on:
+    repo: bash/mdl-app
+    branch: master
+
+  edge:
+    branch: ha-s3-endpoint
+
+after_deploy:
+- curl -X POST $TOBY_URL
