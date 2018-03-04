@@ -33,4 +33,4 @@ deploy:
     branch: ha-s3-endpoint
 
 after_deploy:
-- curl -X POST http://toby.rubys.ninja:8629/v1/deploy/mdl-app -d token=travis -d secret=$TOBY_SECRET
+- curl -X POST -H "Authorization: Token travis:$TOBY_SECRET" http://toby.rubys.ninja:8629/v1/jobs/mdl-app
